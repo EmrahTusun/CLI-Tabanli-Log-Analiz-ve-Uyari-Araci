@@ -7,29 +7,36 @@ def kurallari_getir(): #kurallari getirme fonksiyonumu yazdim
         kural = json.load(k) #python'un json kutuphanesini kullanarak dosyanin icindeki metni sozluk yapisina ceviriyorum.
     return kural["Kural_tabanli_tespit"]#sozlugun icindeki anahtar degere karsilik gelen degerleri tek tek aliyor, 
 
-def rapora_ekle(tarih, log_mesaji):#rapor yazma fonsiyonu disaridan zaman ve mesaj degiskenlerini aliyor.
-    with open('sonuclar.csv', 'a') as s:#gene dosya okuyorum gelen mesaji (a ,append) ile csv ye ekliyor.
+def rapora_ekle(tarih, log_mesaji, dosya_yolu): #rapor yazma fonsiyonu disaridan zaman, mesaj ve dosya_yolu degiskenlerini aliyor.
+    csv_dosyasi = os.path.basename(dosya_yolu).replace(".log", "") + ".csv"# her log icin tutulacak csv dosyasinin adini ayarliyorum mesela "/var/log/auth.log" "auth.csv" seklinde
+    with open(csv_dosyasi, 'a') as s:#gene dosya okuyorum gelen mesaji (a ,append) ile csv ye ekliyor.
         log_mesaji2 = log_mesaji.replace(",", ".") #loglardan gelecek mesajlarda virgul varsa degistiriyorum.
-        s.write(tarih + "," + log_mesaji2 + "\n") #dosyaya mesaji aralarinda virgul olacak ve tek satir olarak yaziyorum.
-        
+        s.write(tarih + "," + log_mesaji2 + "\n")#dosyaya mesaji aralarinda virgul olacak ve tek satir olarak yaziyorum.
 
 def dosya_tara(dosya_yolu, kurallar):
     if not os.path.exists(dosya_yolu): #bakacagimiz log dosyasinin olup olmadigini kotrol ediyoruz.
         print("Dosya yolu bulunamadi hatasi")
         return
-
+    ozet = {}
+    for k in kurallar:
+        ozet[k] = 0 #kural sayaci
+    toplam_satir = 0
     print("\nTarama islemi basladi:")
-    sayac = 0 #hatalari sayaca atiyorum.
     with open(dosya_yolu, 'r') as dosya:#dosyayi okuyorum
-        for satir in dosya:#satir satir for ile icinde geziyorum. 
+        for satir in dosya:#satir satir for ile icinde geziyorum.
+            toplam_satir += 1
             for kural in kurallar: #kurallarimda ve dosyamin satirlarinda buyuk kucuk harf duyarliligini for dongusu ile ayarliyorum.
                 if kural.lower() in satir.lower(): #eger varsa donguye giriyor  
-                    sayac += 1 #sayaci 1 artiriyorum.
+                    ozet[kural] += 1 #bulunan kurallarin sayisi
                     zaman = time.strftime("%Y-%m-%d %H:%M:%S") #bulunma zamani.                    
-                    print("Bulundu: " + kural + " | Satir: " + satir.strip()) #strip ile Loglarda sonundaki gorunmez bosluklari ve alt satira gecme karakterlerini temizler
-                    rapora_ekle(zaman, satir.strip()) #rapora ekleme 
-    
-    print("\nTarama Bitti. Toplam " + str(sayac) + " kural tespit edildi.") #ekrana yazdirma
+                    rapora_ekle(zaman, satir.strip(), dosya_yolu) #rapora ekleme 
+    print("\n   ANALIZ OZETI")
+    print("Incelenen dosya: " + dosya_yolu)
+    print("Okunan toplam satir: " + str(toplam_satir))
+    print("Bulunan hatalar:")
+    for k in ozet:
+        if ozet[k]>0:
+            print("> " + str(ozet[k]) + " tane " + k + " var.")
 
 
 def canli_izle(dosya_yolu, kurallar):
@@ -51,7 +58,7 @@ def canli_izle(dosya_yolu, kurallar):
                     if kural.lower() in satir.lower(): 
                         zaman = time.strftime("%Y-%m-%d %H:%M:%S")
                         print(" [UYARI] " + zaman + " --> " + satir.strip())
-                        rapora_ekle(zaman, "CANLI: " + satir.strip())
+                        rapora_ekle(zaman, "CANLI: " + satir.strip(), dosya_yolu)
         except KeyboardInterrupt: #Ctrl+C
             print("\nCanli izleme durduruldu.")
 

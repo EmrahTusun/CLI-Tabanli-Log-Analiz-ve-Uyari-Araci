@@ -1,5 +1,11 @@
 {
   "Kural_tabanli_tespit": [
+    "ssh",
+    "root",
+    "login",
+    "sudo",
+    "accepted",
+    "admin",
     "failed",
     "failure",
     "error",
