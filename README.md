@@ -9,5 +9,12 @@ Bu proje, sistem loglarını analiz etmek, belirli kurallara göre filtrelemek v
 * **CSV Raporlama:** Tespit edilen loglar `logAdı.csv` dosyasına tarih damgasıyla kaydedilir.
 
 ## Çalıştırma Talimatı
-Programı direkt çalıştırmak için:
+### Programı direkt çalıştırmak için:
 `python main.py`
+
+#### İmaj oluşturma:
+docker build -t log-analiz-araci .
+
+#### Konteyner başlatma:
+docker run -it log-analiz-araci
+##### Canlı izleme modunun Docker üzerinde sağlıklı çalışabilmesi için -v(volume) parametresi ile log dosyasının bulunduğu dizinin konteynera bağlanması gerekir.
